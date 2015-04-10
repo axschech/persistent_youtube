@@ -24,43 +24,55 @@
     </div>
 </div>
 <script type="text/javascript">
-       if(window.location.hash != "") {
-            var hash = {};
-            $.each(window.location.hash.replace("#", "").split("&"), function (i, value) {
-                value = value.split("=");
-                var my_item={};
-                hash[value[0]]= value[1];
-            });
-            history.pushState("", document.title, window.location.pathname
-                                                       + window.location.search);
-            $.ajax({
-                url: 'http://dev.axschech.com/node',
-                method: 'POST',
-                data: JSON.stringify({auth: hash}),
-                contentType: 'application/json',
-                success: function (data) {
-                    console.log(data);
-                }
-            });
-            console.log(hash);
-            
-       }
-
         var auth = {
             client_id:'260397451199-vnhh12pguvmtpat7phitbiv2467jla03.apps.googleusercontent.com',
             redirect_uri: "http://dev.axschech.com/youtube",
             response_type: "token",
-            scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/plus.profile.emails.read https://www.googleapis.com/auth/userinfo.email email'
+            scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/plus.profile.emails.read https://www.googleapis.com/auth/userinfo.email'
         };
-
-        var url = "https://accounts.google.com/o/oauth2/auth?" + $.param(auth);
-        $('#signIn').click(function () {
-            var win = window.open(url, "dat_popup","width=200","height=300");
-            Object.observe(win, function (e) {
-                console.log(e);
+        function checkAuth() {
+            gapi.auth.authorize({client_id: auth.client_id, scope: auth.scope, prompt: "select_account consent"}, function (response) {
+                $.get('https://www.googleapis.com/oauth2/v3/userinfo?access_token=' + response.access_token, function (user_response) {
+                    $.ajax({
+                        url:'http://dev.axschech.com/node',
+                        method: 'POST',
+                        data: JSON.stringify({auth: response, info: user_response}),
+                        contentType: 'application/json',
+                        success: function (data) {
+                            console.log(data);
+                        }
+                    })
+                });
             });
+        }
+
+       // if(window.location.hash != "") {
+       //      var hash = {};
+       //      $.each(window.location.hash.replace("#", "").split("&"), function (i, value) {
+       //          value = value.split("=");
+       //          var my_item={};
+       //          hash[value[0]]= value[1];
+       //      });
+       //      history.pushState("", document.title, window.location.pathname
+       //                                                 + window.location.search);
+       //      $.ajax({
+       //          url: 'http://dev.axschech.com/node',
+       //          method: 'POST',
+       //          data: JSON.stringify({auth: hash}),
+       //          contentType: 'application/json',
+       //          success: function (data) {
+       //              console.log(data);
+       //          }
+       //      });
+       //      console.log(hash);
+            
+       // }
+
+       //  var url = "https://accounts.google.com/o/oauth2/auth?" + $.param(auth);
+        $('#signIn').click(function () {
+            checkAuth();
         });
     </script>
-
+    <script src="https://apis.google.com/js/client.js" sync></script>
 </body>
 </html>
