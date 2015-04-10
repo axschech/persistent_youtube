@@ -1,0 +1,66 @@
+<html>
+<head>
+    <!-- BEGIN Pre-requisites -->
+    <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script> -->
+    <!-- END Pre-requisites -->
+
+</head>
+<body>
+<div class="jumbotron text-center">
+    <h1>Persistent Youtube</h1>
+    <div  style="margin: auto; width:100px; ">
+        <button type="button" class="btn btn-lg" id="signIn">
+            Sign In
+        </button>
+    </div>
+</div>
+<script type="text/javascript">
+       if(window.location.hash != "") {
+            var hash = {};
+            $.each(window.location.hash.replace("#", "").split("&"), function (i, value) {
+                value = value.split("=");
+                var my_item={};
+                hash[value[0]]= value[1];
+            });
+            history.pushState("", document.title, window.location.pathname
+                                                       + window.location.search);
+            $.ajax({
+                url: 'http://dev.axschech.com/node',
+                method: 'POST',
+                data: JSON.stringify({auth: hash}),
+                contentType: 'application/json',
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+            console.log(hash);
+            
+       }
+
+        var auth = {
+            client_id:'260397451199-vnhh12pguvmtpat7phitbiv2467jla03.apps.googleusercontent.com',
+            redirect_uri: "http://dev.axschech.com/youtube",
+            response_type: "token",
+            scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/plus.profile.emails.read https://www.googleapis.com/auth/userinfo.email email'
+        };
+
+        var url = "https://accounts.google.com/o/oauth2/auth?" + $.param(auth);
+        $('#signIn').click(function () {
+            var win = window.open(url, "dat_popup","width=200","height=300");
+            Object.observe(win, function (e) {
+                console.log(e);
+            });
+        });
+    </script>
+
+</body>
+</html>
