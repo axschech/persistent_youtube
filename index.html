@@ -12,7 +12,20 @@
     <!-- Latest compiled and minified JavaScript -->
     <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script> -->
     <!-- END Pre-requisites -->
+    <style type="text/css">
+        .img-thumbnail {
+           margin: 10px;
+        }
 
+        .img-thumbnail:hover {
+          border: 1px solid blue;
+          cursor: pointer;
+        }
+
+        #signOut {
+          display: none;
+        }
+    </style>
 </head>
 <body>
 <div class="jumbotron text-center">
@@ -21,15 +34,34 @@
         <button type="button" class="btn btn-lg" id="signIn">
             Sign In
         </button>
+        <button type="button" class="btn btn-lg" id="signOut">
+            Sign Out
+        </button>
+    </div>
+</div>
+<div class="container">
+    <div class="images">
+
     </div>
 </div>
 <script type="text/javascript">
+        var session = {};
+        var playlists = [];
         var auth = {
             client_id:'260397451199-vnhh12pguvmtpat7phitbiv2467jla03.apps.googleusercontent.com',
             redirect_uri: "http://dev.axschech.com/youtube",
             response_type: "token",
-            scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/plus.profile.emails.read https://www.googleapis.com/auth/userinfo.email'
+            scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/plus.profile.emails.read https://www.googleapis.com/auth/userinfo.email',
+            key: 'AIzaSyChVTrAM1DUiOYZcz_rjXy5KcrXFAEUp3'
         };
+        if(localStorage.getItem('py_session')) {
+          session = JSON.parse(localStorage.getItem('py_session'));
+          $('#signIn').hide();
+          $('#signOut').show();
+          console.log(session);
+          getPlaylists();
+        }
+
         function checkAuth() {
             gapi.auth.authorize({client_id: auth.client_id, scope: auth.scope, prompt: "select_account consent"}, function (response) {
                 $.get('https://www.googleapis.com/oauth2/v3/userinfo?access_token=' + response.access_token, function (user_response) {
@@ -39,39 +71,52 @@
                         data: JSON.stringify({auth: response, info: user_response}),
                         contentType: 'application/json',
                         success: function (data) {
-                            console.log(data);
+                            session = {auth: response, info: user_response, data: {}};
+                            session.auth.key = auth.key;
+                            localStorage.setItem('py_session',JSON.stringify(session));
+                            location.reload();
                         }
                     })
                 });
             });
         }
 
-       // if(window.location.hash != "") {
-       //      var hash = {};
-       //      $.each(window.location.hash.replace("#", "").split("&"), function (i, value) {
-       //          value = value.split("=");
-       //          var my_item={};
-       //          hash[value[0]]= value[1];
-       //      });
-       //      history.pushState("", document.title, window.location.pathname
-       //                                                 + window.location.search);
-       //      $.ajax({
-       //          url: 'http://dev.axschech.com/node',
-       //          method: 'POST',
-       //          data: JSON.stringify({auth: hash}),
-       //          contentType: 'application/json',
-       //          success: function (data) {
-       //              console.log(data);
-       //          }
-       //      });
-       //      console.log(hash);
-            
-       // }
+        function logOut() {
+          localStorage.clear();
+          location.reload();
+        }
 
-       //  var url = "https://accounts.google.com/o/oauth2/auth?" + $.param(auth);
+        function getPlaylists() {
+          var url = "https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&maxResults=12";
+          url += "&key=" + session.auth.key;
+          url += "&access_token=" + session.auth.access_token;
+          $.get(url, function(response) {
+              console.log(response);
+              response.items.forEach(function (item) {
+                  playlists.push({id: item.id, title: item.snippet.title, thumbnail: item.snippet.thumbnails.medium.url});
+              });
+              setThumbnails();
+          });
+        }
+
+        function setThumbnails() {
+          var html = "";
+          playlists.forEach(function (playlist) {
+              html += "<div class='col-md-4'>";
+              html += "<h2 class='text-center'>"+playlist.title+"</h2>";
+              html += "<img id='" + playlist.id + "' class='img-thumbnail' src='" + playlist.thumbnail + "' />";
+              html += "</div>"
+          });
+          $('.images').html(html);
+        }
+
         $('#signIn').click(function () {
             checkAuth();
         });
+
+        $('#signOut').click(function () {
+            logOut();
+        })
     </script>
     <script src="https://apis.google.com/js/client.js" sync></script>
 </body>
