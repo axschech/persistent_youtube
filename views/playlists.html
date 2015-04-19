@@ -1,0 +1,4 @@
+<div class="col-md-4" ng-repeat="playlist in youtube.playlists">
+  <h2 class='text-center'>{{playlist.snippet.title}}</h2>
+  <img class='img-thumbnail' ng-src="{{playlist.snippet.thumbnails.medium.url}}"  ng-click="goToPlaylist(playlist.id)" />
+</div>

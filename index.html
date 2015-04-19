@@ -2,7 +2,7 @@
 <head>
     <!-- BEGIN Pre-requisites -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-route.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
     <script src="https://apis.google.com/js/client.js"></script>
     <script src="app.js"></script>
@@ -36,18 +36,15 @@
 </head>
 <body>
 <div ng-app="app">
-  <div class="jumbotron text-center" ng-controller="SignIn">
-      <h1>Persistent Youtube</h1>
-      <div style="margin: auto; width:100px; ">
-          <button type="button" class="btn" ng-click="auth()">{{buttonText}}</button>
-      </div>
-  </div>
-  <div class="col-md-4" ng-repeat="playlist in youtube.playlists">
-  hey
-      <h2 class='text-center'>{{playlist.snippet.title}}</h2>;
-      <img class='img-thumbnail' ng-src="playlist.thumbnail" />;
-      </div>
-  </div>
+    <div ng-controller="SignIn">
+        <div class="jumbotron text-center">
+            <h1>Persistent Youtube</h1>
+            <div style="margin: auto; width:100px; ">
+                <button type="button" class="btn" ng-click="auth()">{{buttonText}}</button>
+            </div>
+        </div>
+    </div>
+    <div class="container" ng-view></div>
 </div>
 <script type="text/javascript">
         // var session = {};

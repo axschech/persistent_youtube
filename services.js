@@ -23,6 +23,11 @@ angular.module('services', [])
 			});
 	};
 
+	service.prototype.logout = function () {
+		SessionService.clear();
+		this.setService();
+	};
+
 	service.prototype.setService = function () {
 		this.session = SessionService.get();
 	};
@@ -52,9 +57,52 @@ angular.module('services', [])
 			return $http({
 				url: this.url,
 				params: {
-					part: "snippet",
+					part: "snippet,id",
 					mine: "true",
 					key: AUTH.key,
+					access_token: session.access_token
+				}
+			});
+		}
+	}
+})
+.service('VideosService', function ($http, AUTH, SessionService) {
+	return {
+		pUrl: "https://www.googleapis.com/youtube/v3/playlistItems",
+		getVideos: function (playlistId) {
+			var session = SessionService.get();
+			var self = this;
+
+			return $http({
+				url: self.pUrl,
+				method: 'GET',
+				params: {
+					part: "snippet",
+					key: AUTH.key,
+					playlistId: playlistId,
+					access_token: session.access_token,
+					maxResults: 9
+				}
+			});
+		}
+	}
+})
+.service('VideoService', function ($http, AUTH, SessionService) {
+	return {
+		video: "",
+		vUrl: "https://www.googleapis.com/youtube/v3/videos",
+		getVideo: function (videoId) {
+			var session = SessionService.get();
+			var self = this;
+
+			return $http({
+				url: self.vUrl,
+				method: 'GET',
+				params: {
+					id: videoId,
+					part: "player",
+					key: AUTH.key,
+					playlistId: videoId,
 					access_token: session.access_token
 				}
 			});
