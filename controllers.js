@@ -3,13 +3,17 @@ angular.module('controllers',[])
 function(
 	$scope,
     $location,
+    $route,
 	AuthService
 ) {
-    
+    $scope.restart = function () {
+        location.reload();
+    };
     $scope.Auth = new AuthService();
     if($scope.Auth.session === false) {
     	$scope.buttonText = "Sign In";
     } else {
+        $scope.Auth.checkSession();
     	$location.path('playlists');
     	$scope.buttonText = "Sign out";
     }
@@ -29,8 +33,6 @@ function(
     };
 
     $scope.signOut = function () {
-        // $scope.Auth.setService();
-        console.log($scope.Auth.session);
         $scope.Auth.logout();
         $location.path("/");
     };
@@ -41,14 +43,23 @@ function (
     $location,
     YoutubeService
 ) {
+    $scope.page = "playlists";
+    $scope.change = function (page) {
+        $scope.page = page;
+    };
+
     $scope.youtube = {
         playlists: []
     }
 
     $scope.getPlaylists = function () {
-        YoutubeService.getPlaylists().then(function (response) {
+        var promise = YoutubeService.getPlaylists();
+        promise.then(function (response) {
             console.log(response.data.items);
             $scope.youtube.playlists = response.data.items;
+        });
+        promise.error(function () {
+            $location.path('/');
         });
     }
 
@@ -65,13 +76,36 @@ function (
     $location,
     VideosService
 ) {
+
     $scope.youtube = {
-        videos: []
+        videos: [],
+        next: false,
+        previous: false
     };
 
-    VideosService.getVideos($routeParams.video).then(function (response) {
-        $scope.youtube.videos = response.data.items;
-    });
+    $scope.getVideos = function () {
+        VideosService.getVideos(
+            $routeParams.video,
+            $scope.youtube.next,
+            $scope.youtube.previous
+        ).then(function (response) {
+            $scope.youtube.videos = response.data.items;
+            if(angular.isDefined(response.data.nextPageToken)) {
+                $scope.youtube.next = response.data.nextPageToken;
+            } else {
+                $scope.youtube.next = false;
+            }
+
+            if(angular.isDefined(response.data.prevPageToken)) {
+                $scope.youtube.previous = response.data.prevPageToken;
+            } else {
+                $scope.youtube.previous = false;
+            }
+            
+        });
+    };
+    
+    $scope.getVideos();
 
     $scope.goToVideo = function (videoId) {
         $location.path('video/' + videoId);

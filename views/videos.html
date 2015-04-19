@@ -1,4 +1,10 @@
+<div class="row">
+	<button type="button" class="btn pull-left" ng-show="youtube.previous" ng-click="getVideos()"><span class="glyphicon glyphicon-arrow-left"></span></button>
+	<button type="button" class="btn pull-right" ng-show="youtube.next" ng-click="getVideos()"><span class="glyphicon glyphicon-arrow-right"></span></button>
+</div>
+<div class="row">
 <div class="col-md-4" ng-repeat="video in youtube.videos">
   <h3 class='text-center' style="max-width:100%; white-space: nowrap;  overflow: hidden;  text-overflow: ellipsis;">{{video.snippet.title}}</h3>
   <img class='img-thumbnail' ng-src="{{video.snippet.thumbnails.medium.url}}" ng-click="goToVideo(video.snippet.resourceId.videoId)" />
+</div>
 </div>

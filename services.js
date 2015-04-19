@@ -7,6 +7,7 @@ angular.module('services', [])
 
 	service.prototype.auth = function () {
 		var self = this;
+		setTimeout(function () {
 		gapi.auth.authorize(
 			{
 				client_id: AUTH.client_id,
@@ -21,6 +22,7 @@ angular.module('services', [])
 				}, 1000);
 				
 			});
+		}, 1000);
 	};
 
 	service.prototype.logout = function () {
@@ -30,6 +32,14 @@ angular.module('services', [])
 
 	service.prototype.setService = function () {
 		this.session = SessionService.get();
+	};
+
+	service.prototype.checkSession = function () {
+		if(angular.isDefined(this.session.expires_at)) {
+			if(moment().unix() > this.session.expires_at) {
+				this.auth();
+			}
+		}
 	};
 
 	return service;
@@ -69,20 +79,30 @@ angular.module('services', [])
 .service('VideosService', function ($http, AUTH, SessionService) {
 	return {
 		pUrl: "https://www.googleapis.com/youtube/v3/playlistItems",
-		getVideos: function (playlistId) {
+		getVideos: function (playlistId, next, previous) {
+
 			var session = SessionService.get();
 			var self = this;
+			var params = {
+				part: "snippet",
+				key: AUTH.key,
+				playlistId: playlistId,
+				access_token: session.access_token,
+				maxResults: 9
+			};
+			console.log(previous);
+			if (next) {
+				params.pageToken = next;
+			}
+
+			if (previous) {
+				params.pageToken = previous;
+			}
 
 			return $http({
 				url: self.pUrl,
 				method: 'GET',
-				params: {
-					part: "snippet",
-					key: AUTH.key,
-					playlistId: playlistId,
-					access_token: session.access_token,
-					maxResults: 9
-				}
+				params: params
 			});
 		}
 	}
