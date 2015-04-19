@@ -15,7 +15,6 @@ function(
     }
     $scope.auth = function () {
     	if($scope.Auth.session === false) {
-            console.log('kenh');
     		$scope.Auth.auth();
             // $scope.Auth.setService();
 	        $scope.Auth.$promise.promise.then(function () {
@@ -23,7 +22,6 @@ function(
                 $location.path('playlists');
 	        });
     	} else {
-            console.log('wenh');
             $scope.buttonText = "Sign In";
             $scope.signOut();
         }
@@ -31,7 +29,6 @@ function(
     };
 
     $scope.signOut = function () {
-        console.log('henh');
         // $scope.Auth.setService();
         console.log($scope.Auth.session);
         $scope.Auth.logout();
@@ -83,15 +80,19 @@ function (
 .controller('VideoController',
 function (
     $scope,
-    $routeParams,
-    $sce,
-    VideoService
+    $routeParams
 ) {
     $scope.youtube = {
-        video: ""
+        video: $routeParams.video,
+        config: {
+            controls: 1,
+            autoplay: 0
+        }
     };
 
-    VideoService.getVideo($routeParams.video).then(function (response) {
-        $scope.youtube.video = $sce.trustAsHtml(response.data.items[0].player.embedHtml);
+    $scope.$on('youtube.player.paused', function ($event, player) {
+    // play it again
+        var time = Math.floor(player.getCurrentTime());
     });
+
 });

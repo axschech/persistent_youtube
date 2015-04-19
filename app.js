@@ -2,7 +2,8 @@ angular.module('app',[
   'ngRoute',
   'controllers',
   'services',
-  'directives'
+  'directives',
+  'youtube-embed'
 ])
 .constant('AUTH', {
     client_id:'260397451199-vnhh12pguvmtpat7phitbiv2467jla03.apps.googleusercontent.com',
