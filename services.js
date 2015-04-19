@@ -1,5 +1,5 @@
 angular.module('services', [])
-.factory('AuthService', function (AUTH, $q, SessionService) {
+.factory('AuthService', function (AUTH, $q, $http, SessionService) {
 	function service() {
 		this.$promise = $q.defer();
 		this.setService();
@@ -16,9 +16,14 @@ angular.module('services', [])
 			}, 
 			function (response) {
 				setTimeout(function () {
-					SessionService.set(response);
-					self.setService();
-					self.$promise.resolve();
+					var info = self.getInfo(response.access_token);
+					info.then(function (infoResponse) {
+						response.info = infoResponse.data;
+						SessionService.set(response);
+						self.setService();
+						self.$promise.resolve();
+					})
+					
 				}, 1000);
 				
 			});
@@ -40,6 +45,16 @@ angular.module('services', [])
 				this.auth();
 			}
 		}
+	};
+
+	service.prototype.getInfo = function (access_token) {
+		var url = "https://www.googleapis.com/oauth2/v3/userinfo";
+		return $http({
+			url: url,
+			params: {
+				access_token: access_token
+			}
+		});
 	};
 
 	return service;
