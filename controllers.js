@@ -152,31 +152,37 @@ function (
         },
         player: undefined
     };
-
+    $scope.videoId = $routeParams.video;
     $scope.$on('youtube.player.ready', function() {
-        if($scope.session.info.server.data.time) {
-            $scope.youtube.player.seekTo($scope.session.info.server.data.time);
-        }
-        console.log($scope.session.info.server.data);
-        if($scope.session.info.server.data.playlistId) {
+
+        if(ServerService.playlist.id) {
             $scope.youtube.player.loadPlaylist({
                 listType: 'playlist',
-                list: $scope.session.info.server.data.playlistId,
-                index: $scope.session.info.server.data.playlistIndex
+                list: ServerService.playlist.id,
+                index: ServerService.playlist.index,
+                startSeconds: $scope.youtube.player.seekTo($scope.session.info.server.data.time)
             })
+        } else if($scope.session.info.server.data.time) {
+            $scope.youtube.player.seekTo($scope.session.info.server.data.time);
         }
     });
-
+    $scope.$on('youtube.player.queued', function () {
+        console.log('hey!');
+    });
     $scope.$on('youtube.player.paused', function ($event, player) {
         var time = Math.floor(player.getCurrentTime()),
             videoId = $routeParams.video;
+        console.log(time);
         ServerService.setSavedInfo(time, videoId);
     });
 
-    $scope.$on('$destroy', function () {
-        var time = Math.floor(player.getCurrentTime()),
-            videoId = $routeParams.video;
-        ServerService.setSavedInfo(time, videoId);
-        // $scope.youtube.player.destroy();
+    $scope.$on('$destroy', function (event) {
+        if($scope.youtube.player.getPlayerState() === 1) {
+            var time = Math.floor($scope.youtube.player.getCurrentTime()),
+            videoId = $scope.videoId;
+
+            ServerService.setSavedInfo(time, videoId);
+        }
+        
     });
 });
