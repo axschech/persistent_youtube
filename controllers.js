@@ -154,15 +154,19 @@ function (
     };
     $scope.videoId = $routeParams.video;
     $scope.$on('youtube.player.ready', function() {
-
+        if($scope.session.info.server.data.videoId !== $scope.videoId) {
+            $scope.session.info.server.data.time = 0;
+        }
         if(ServerService.playlist.id) {
             $scope.youtube.player.loadPlaylist({
                 listType: 'playlist',
                 list: ServerService.playlist.id,
                 index: ServerService.playlist.index,
-                startSeconds: $scope.youtube.player.seekTo($scope.session.info.server.data.time)
+                startSeconds: $scope.session.info.server.data.time
             })
-        } else if($scope.session.info.server.data.time) {
+        }
+
+        if($scope.session.info.server.data.time) {
             $scope.youtube.player.seekTo($scope.session.info.server.data.time);
         }
     });
