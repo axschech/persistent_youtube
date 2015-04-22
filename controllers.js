@@ -21,14 +21,16 @@ function(
             console.log('am here');
             console.log($scope);
         }
-
-        if(AuthService.session.info.server.data.videoId) {
-            ServerService.playlist.id = AuthService.session.info.server.data.playlistId;
-            ServerService.playlist.index = AuthService.session.info.server.data.playlistIndex;
-            $location.path('video/' + AuthService.session.info.server.data.videoId);
-        } else {
-            $location.path('playlists');
-        }
+        AuthService.getSavedInfo(AuthService.session.info.email).then(function () {
+            if(AuthService.session.info.server.data.videoId) {
+                ServerService.playlist.id = AuthService.session.info.server.data.playlistId;
+                ServerService.playlist.index = AuthService.session.info.server.data.playlistIndex;
+                $location.path('video/' + AuthService.session.info.server.data.videoId);
+            } else {
+                $location.path('playlists');
+            }
+        });
+        
     	
     	$scope.buttonText = "Sign out";
     }
