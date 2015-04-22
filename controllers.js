@@ -4,17 +4,32 @@ function(
 	$scope,
     $location,
     $route,
-	AuthService
+	AuthService,
+    ServerService
 ) {
     $scope.restart = function () {
-        location.reload();
+        $location.path('/playlists');
     };
-    $scope.Auth = new AuthService();
+    console.log('running');
+    $scope.Auth = AuthService;
+    $scope.Auth.setService();
     if($scope.Auth.session === false) {
+        console.log("am am");
     	$scope.buttonText = "Sign In";
     } else {
-        $scope.Auth.checkSession();
-    	$location.path('playlists');
+        if(!$scope.Auth.checkSession()) {
+            console.log('am here');
+            console.log($scope);
+        }
+
+        if(AuthService.session.info.server.data.videoId) {
+            ServerService.playlist.id = AuthService.session.info.server.data.playlistId;
+            ServerService.playlist.index = AuthService.session.info.server.data.playlistIndex;
+            $location.path('video/' + AuthService.session.info.server.data.videoId);
+        } else {
+            $location.path('playlists');
+        }
+    	
     	$scope.buttonText = "Sign out";
     }
     $scope.auth = function () {
@@ -23,7 +38,13 @@ function(
             // $scope.Auth.setService();
 	        $scope.Auth.$promise.promise.then(function () {
 	        	$scope.buttonText = "Sign out";
-                $location.path('playlists');
+                if(AuthService.session.info.server.data.videoId) {
+                    ServerService.playlist.id = AuthService.session.info.server.data.playlistId;
+                    ServerService.playlist.index = AuthService.session.info.server.data.playlistIndex;
+                    $location.path('video/' + AuthService.session.info.server.data.videoId);
+                } else {
+                    $location.path('playlists');
+                }
 	        });
     	} else {
             $scope.buttonText = "Sign In";
@@ -34,7 +55,8 @@ function(
 
     $scope.signOut = function () {
         $scope.Auth.logout();
-        $location.path("/");
+        $location.path('/');
+        location.reload();
     };
 })
 .controller('PlaylistsController',
@@ -59,9 +81,10 @@ function (
             $scope.youtube.playlists = response.data.items;
         });
         promise.error(function () {
+            console.log('there');
             $location.path('/');
         });
-    }
+    };
 
     $scope.getPlaylists();
 
@@ -74,6 +97,7 @@ function (
     $scope,
     $routeParams,
     $location,
+    ServerService,
     VideosService
 ) {
 
@@ -107,26 +131,52 @@ function (
     
     $scope.getVideos();
 
-    $scope.goToVideo = function (videoId) {
+    $scope.goToVideo = function (videoId, playlistIndex) {
+        ServerService.playlist.index = playlistIndex;
         $location.path('video/' + videoId);
     };
 })
 .controller('VideoController',
 function (
     $scope,
-    $routeParams
+    $routeParams,
+    ServerService,
+    SessionService
 ) {
+    $scope.session = SessionService.get();
     $scope.youtube = {
         video: $routeParams.video,
         config: {
             controls: 1,
             autoplay: 0
-        }
+        },
+        player: undefined
     };
 
-    $scope.$on('youtube.player.paused', function ($event, player) {
-    // play it again
-        var time = Math.floor(player.getCurrentTime());
+    $scope.$on('youtube.player.ready', function() {
+        if($scope.session.info.server.data.time) {
+            $scope.youtube.player.seekTo($scope.session.info.server.data.time);
+        }
+        console.log($scope.session.info.server.data);
+        if($scope.session.info.server.data.playlistId) {
+            $scope.youtube.player.loadPlaylist({
+                listType: 'playlist',
+                list: $scope.session.info.server.data.playlistId,
+                index: $scope.session.info.server.data.playlistIndex
+            })
+        }
     });
 
+    $scope.$on('youtube.player.paused', function ($event, player) {
+        var time = Math.floor(player.getCurrentTime()),
+            videoId = $routeParams.video;
+        ServerService.setSavedInfo(time, videoId);
+    });
+
+    $scope.$on('$destroy', function () {
+        var time = Math.floor(player.getCurrentTime()),
+            videoId = $routeParams.video;
+        ServerService.setSavedInfo(time, videoId);
+        // $scope.youtube.player.destroy();
+    });
 });

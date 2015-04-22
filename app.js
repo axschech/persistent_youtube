@@ -14,6 +14,9 @@ angular.module('app',[
 })
 .config(function ($routeProvider) {
 	$routeProvider
+	.when('/home', {
+		redirectTo: '/'
+	}) 
 	.when('/playlists', {
 		templateUrl: 'views/playlists.html',
 		controller: 'PlaylistsController'
